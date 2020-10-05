@@ -50,10 +50,11 @@ use_statsd: "false"
 runtime_root: "/"
 runtime_subdirectory: "ratelimit/config"
 redis:
-  enabled: false
+  enabled: true
   socket_type: "tcp"
+  # do fill below values if you plan to depend upon service like elacticache or memorystore
   external:
-    host: "10.245.79.243"
+    host: ""
     port: "6379"
   usePassword: false
 
