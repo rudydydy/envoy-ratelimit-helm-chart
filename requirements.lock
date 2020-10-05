@@ -1,0 +1,9 @@
+dependencies:
+- name: redis
+  repository: https://kubernetes-charts.storage.googleapis.com/
+  version: 4.3.1
+- name: envoy
+  repository: https://kubernetes-charts.storage.googleapis.com/
+  version: 1.9.2
+digest: sha256:fbcdb8dd8711c6c139b0e104adbd0a101a1944b198397bd74974a99ec5d33f8d
+generated: "2020-10-02T20:50:39.022663+07:00"

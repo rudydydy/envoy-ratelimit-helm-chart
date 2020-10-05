@@ -1,0 +1,101 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "envoy-ratelimit.fullname" . }}
+  labels:
+    {{- include "envoy-ratelimit.labels" . | nindent 4 }}
+spec:
+  replicas: {{ .Values.replicaCount }}
+  selector:
+    matchLabels:
+      {{- include "envoy-ratelimit.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      labels:
+        {{- include "envoy-ratelimit.selectorLabels" . | nindent 8 }}
+    spec:
+    {{- with .Values.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+    {{- end }}
+      securityContext:
+        {{- toYaml .Values.podSecurityContext | nindent 8 }}
+      volumes:
+      - name: configuration-files
+        configMap: 
+          name: {{ include "envoy-ratelimit.fullname" . }}-files
+      containers:
+        - name: {{ .Chart.Name }}
+          securityContext:
+            {{- toYaml .Values.securityContext | nindent 12 }}
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          command: ["ratelimit"]
+          ports:
+            - containerPort: 8080
+              protocol: TCP
+            - containerPort: 8081
+              protocol: TCP
+            - containerPort: 6070
+              protocol: TCP
+          livenessProbe:
+            httpGet:
+              path: /
+              port: 6070
+          readinessProbe:
+            httpGet:
+              path: /
+              port: 6070
+          env:
+            - name: RUNTIME_ROOT
+              value: "/"
+            - name: RUNTIME_SUBDIRECTORY
+              value: "ratelimit/config"
+          env:
+            - name: USE_STATSD
+              valueFrom:
+                configMapKeyRef:
+                  name: {{ include "envoy-ratelimit.fullname" . }}
+                  key: USE_STATSD
+            - name: LOG_LEVEL
+              valueFrom:
+                configMapKeyRef:
+                  name: {{ include "envoy-ratelimit.fullname" . }}
+                  key: LOG_LEVEL
+            - name: REDIS_SOCKET_TYPE
+              valueFrom:
+                configMapKeyRef:
+                  name: {{ include "envoy-ratelimit.fullname" . }}
+                  key: REDIS_SOCKET_TYPE
+            - name: REDIS_URL
+              valueFrom:
+                configMapKeyRef:
+                  name: {{ include "envoy-ratelimit.fullname" . }}
+                  key: REDIS_URL
+            - name: RUNTIME_ROOT
+              valueFrom:
+                configMapKeyRef:
+                  name: {{ include "envoy-ratelimit.fullname" . }}
+                  key: RUNTIME_ROOT
+            - name: RUNTIME_SUBDIRECTORY
+              valueFrom:
+                configMapKeyRef:
+                  name: {{ include "envoy-ratelimit.fullname" . }}
+                  key: RUNTIME_SUBDIRECTORY
+          volumeMounts:
+          - name: configuration-files
+            mountPath: /ratelimit/config
+          resources:
+            {{- toYaml .Values.resources | nindent 12 }}
+      {{- with .Values.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+    {{- with .Values.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+    {{- end }}
+    {{- with .Values.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+    {{- end }}

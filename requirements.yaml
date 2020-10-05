@@ -1,0 +1,9 @@
+dependencies:
+- name: redis
+  version: 4.3.1
+  repository: https://kubernetes-charts.storage.googleapis.com/
+  condition: redis.enabled
+- name: envoy
+  version: 1.9.2
+  repository: https://kubernetes-charts.storage.googleapis.com/
+  condition: envoy.enabled
